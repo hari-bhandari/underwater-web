@@ -22,19 +22,19 @@ export const availableModels: Record<string, ModelInfo> = {
   yolov8: {
     id: "yolov8",
     name: "YOLOv8",
-    path: "https://github.com/hari-bhandari/underwater-react/releases/download/models/yolo.onnx",
+    path: "/models/yolo.onnx",
     size: 12.3,
   },
   yolov8_transformer: {
     id: "yolov8_transformer",
     name: "YOLOv8 head + Transformer",
-    path: "https://github.com/hari-bhandari/underwater-react/releases/download/models/rt_detr.onnx",
+    path: "/models/hybrid.onnx",
     size: 42.5,
   },
   rt_detr: {
     id: "rt_detr",
     name: "RT-DETR",
-    path: "https://github.com/hari-bhandari/underwater-react/releases/download/models/rt_detr.onnx",
+    path: "/models/rt_detr.onnx",
     size: 56.8,
   },
 }
