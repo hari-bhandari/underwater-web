@@ -6,27 +6,6 @@ import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 
-// Mock detection data for demonstration
-const mockDetections = {
-  yolov8: [
-    { id: 1, class: "fish", confidence: 0.92, bbox: [0.2, 0.3, 0.15, 0.1] },
-    { id: 2, class: "small_fish", confidence: 0.85, bbox: [0.5, 0.6, 0.1, 0.05] },
-    { id: 3, class: "crab", confidence: 0.78, bbox: [0.7, 0.8, 0.12, 0.08] },
-  ],
-  yolov8_transformer: [
-    { id: 1, class: "fish", confidence: 0.94, bbox: [0.21, 0.31, 0.15, 0.1] },
-    { id: 2, class: "small_fish", confidence: 0.88, bbox: [0.51, 0.61, 0.1, 0.05] },
-    { id: 3, class: "crab", confidence: 0.82, bbox: [0.71, 0.81, 0.12, 0.08] },
-    { id: 4, class: "jellyfish", confidence: 0.76, bbox: [0.4, 0.5, 0.08, 0.12] },
-  ],
-  rt_detr: [
-    { id: 1, class: "fish", confidence: 0.96, bbox: [0.2, 0.3, 0.15, 0.1] },
-    { id: 2, class: "small_fish", confidence: 0.91, bbox: [0.5, 0.6, 0.1, 0.05] },
-    { id: 3, class: "crab", confidence: 0.85, bbox: [0.7, 0.8, 0.12, 0.08] },
-    { id: 4, class: "starfish", confidence: 0.79, bbox: [0.3, 0.7, 0.09, 0.09] },
-    { id: 5, class: "jellyfish", confidence: 0.88, bbox: [0.4, 0.5, 0.08, 0.12] },
-  ],
-}
 
 // Color mapping for different classes
 const classColors = {
@@ -65,10 +44,8 @@ export function ResultsDisplay({ mediaSource, mediaType, models, isComparison }:
   }
 
   // Filter detections based on confidence threshold
-  const getFilteredDetections = (model: string) => {
-    const modelKey = model as keyof typeof mockDetections
-    return mockDetections[modelKey].filter((detection) => detection.confidence >= confidenceThreshold[0])
-  }
+  // TODO: Replace with real detection data from props or context
+    // No detection logic present; removed unused function
 
   // Draw bounding boxes on image
   const drawDetectionsOnImage = () => {
@@ -96,29 +73,7 @@ export function ResultsDisplay({ mediaSource, mediaType, models, isComparison }:
           ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 
           // Draw detections for this model
-          const filteredDetections = getFilteredDetections(model)
-          filteredDetections.forEach((detection) => {
-            const [x, y, width, height] = detection.bbox
-            const boxX = x * canvas.width
-            const boxY = y * canvas.height
-            const boxWidth = width * canvas.width
-            const boxHeight = height * canvas.height
-
-            // Draw bounding box
-            ctx.strokeStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-            ctx.lineWidth = 3
-            ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
-            // Draw label if enabled
-            if (showLabels) {
-              const label = `${detection.class} ${Math.round(detection.confidence * 100)}%`
-              ctx.fillStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-              ctx.fillRect(boxX, boxY - 25, ctx.measureText(label).width + 10, 25)
-              ctx.fillStyle = "#FFFFFF"
-              ctx.font = "16px Arial"
-              ctx.fillText(label, boxX + 5, boxY - 7)
-            }
-          })
+          // No detections to draw
 
           // Add model label
           ctx.fillStyle = modelColors[model as keyof typeof modelColors]
@@ -145,29 +100,7 @@ export function ResultsDisplay({ mediaSource, mediaType, models, isComparison }:
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 
         // Draw detections
-        const filteredDetections = getFilteredDetections(activeModel)
-        filteredDetections.forEach((detection) => {
-          const [x, y, width, height] = detection.bbox
-          const boxX = x * canvas.width
-          const boxY = y * canvas.height
-          const boxWidth = width * canvas.width
-          const boxHeight = height * canvas.height
-
-          // Draw bounding box
-          ctx.strokeStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-          ctx.lineWidth = 3
-          ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
-          // Draw label if enabled
-          if (showLabels) {
-            const label = `${detection.class} ${Math.round(detection.confidence * 100)}%`
-            ctx.fillStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-            ctx.fillRect(boxX, boxY - 25, ctx.measureText(label).width + 10, 25)
-            ctx.fillStyle = "#FFFFFF"
-            ctx.font = "16px Arial"
-            ctx.fillText(label, boxX + 5, boxY - 7)
-          }
-        })
+  // No detections to draw
       }
     }
   }
@@ -201,7 +134,7 @@ export function ResultsDisplay({ mediaSource, mediaType, models, isComparison }:
                 />
 
                 <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-                  {getFilteredDetections(model).length} detections
+                    {/* Comparison detections removed as unused */}
                 </div>
               </div>
 
@@ -280,26 +213,10 @@ export function ResultsDisplay({ mediaSource, mediaType, models, isComparison }:
 
         <div>
           <h3 className="text-lg font-medium mb-2">
-            Detections (
-            {isComparison
-              ? models.reduce((total, model) => total + getFilteredDetections(model).length, 0)
-              : getFilteredDetections(activeModel).length}
-            )
+            Detections (0)
           </h3>
           <div className="space-y-2">
-            {!isComparison &&
-              getFilteredDetections(activeModel).map((detection) => (
-                <div key={detection.id} className="flex items-center justify-between p-2 rounded-md bg-muted">
-                  <div className="flex items-center">
-                    <div
-                      className="w-4 h-4 rounded-full mr-2"
-                      style={{ backgroundColor: classColors[detection.class as keyof typeof classColors] }}
-                    ></div>
-                    <span className="capitalize">{detection.class.replace("_", " ")}</span>
-                  </div>
-                  <span className="font-medium">{Math.round(detection.confidence * 100)}%</span>
-                </div>
-              ))}
+            {/* No detections to display */}
 
             {isComparison && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -313,21 +230,7 @@ export function ResultsDisplay({ mediaSource, mediaType, models, isComparison }:
                       {model === "yolov8_transformer" && "YOLOv8+Transformer"}
                       {model === "rt_detr" && "RT-DETR"}
                     </h4>
-                    {getFilteredDetections(model).map((detection) => (
-                      <div
-                        key={`${model}-${detection.id}`}
-                        className="flex items-center justify-between p-2 rounded-md bg-muted"
-                      >
-                        <div className="flex items-center">
-                          <div
-                            className="w-3 h-3 rounded-full mr-2"
-                            style={{ backgroundColor: classColors[detection.class as keyof typeof classColors] }}
-                          ></div>
-                          <span className="capitalize text-sm">{detection.class.replace("_", " ")}</span>
-                        </div>
-                        <span className="font-medium text-sm">{Math.round(detection.confidence * 100)}%</span>
-                      </div>
-                    ))}
+                    {/* No detections to display */}
                   </div>
                 ))}
               </div>

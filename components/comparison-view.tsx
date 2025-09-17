@@ -10,26 +10,6 @@ import { Play, Pause, SkipForward, SkipBack } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 // Mock detection data for demonstration
-const mockDetections = {
-  yolov8: [
-    { id: 1, class: "fish", confidence: 0.92, bbox: [0.2, 0.3, 0.15, 0.1] },
-    { id: 2, class: "small_fish", confidence: 0.85, bbox: [0.5, 0.6, 0.1, 0.05] },
-    { id: 3, class: "crab", confidence: 0.78, bbox: [0.7, 0.8, 0.12, 0.08] },
-  ],
-  yolov8_transformer: [
-    { id: 1, class: "fish", confidence: 0.94, bbox: [0.21, 0.31, 0.15, 0.1] },
-    { id: 2, class: "small_fish", confidence: 0.88, bbox: [0.51, 0.61, 0.1, 0.05] },
-    { id: 3, class: "crab", confidence: 0.82, bbox: [0.71, 0.81, 0.12, 0.08] },
-    { id: 4, class: "jellyfish", confidence: 0.76, bbox: [0.4, 0.5, 0.08, 0.12] },
-  ],
-  rt_detr: [
-    { id: 1, class: "fish", confidence: 0.96, bbox: [0.2, 0.3, 0.15, 0.1] },
-    { id: 2, class: "small_fish", confidence: 0.91, bbox: [0.5, 0.6, 0.1, 0.05] },
-    { id: 3, class: "crab", confidence: 0.85, bbox: [0.7, 0.8, 0.12, 0.08] },
-    { id: 4, class: "starfish", confidence: 0.79, bbox: [0.3, 0.7, 0.09, 0.09] },
-    { id: 5, class: "jellyfish", confidence: 0.88, bbox: [0.4, 0.5, 0.08, 0.12] },
-  ],
-}
 
 // Mock statistics data for comparison
 const mockComparisonStats = {
@@ -99,9 +79,9 @@ export function ComparisonView({ mediaSource, mediaType }: ComparisonViewProps) 
   const animationRef = useRef<number>()
 
   // Filter detections based on confidence threshold
-  const getFilteredDetections = (model: string) => {
-    const modelKey = model as keyof typeof mockDetections
-    return mockDetections[modelKey].filter((detection) => detection.confidence >= confidenceThreshold[0])
+  // TODO: Replace with real detection data from props or context
+  const getFilteredDetections = (_model: string) => {
+    return [];
   }
 
   // Draw bounding boxes on image for all models
@@ -127,29 +107,7 @@ export function ComparisonView({ mediaSource, mediaType }: ComparisonViewProps) 
         ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
 
         // Draw detections for this model
-        const filteredDetections = getFilteredDetections(model)
-        filteredDetections.forEach((detection) => {
-          const [x, y, width, height] = detection.bbox
-          const boxX = x * canvas.width
-          const boxY = y * canvas.height
-          const boxWidth = width * canvas.width
-          const boxHeight = height * canvas.height
-
-          // Draw bounding box
-          ctx.strokeStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-          ctx.lineWidth = 3
-          ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
-          // Draw label if enabled
-          if (showLabels) {
-            const label = `${detection.class} ${Math.round(detection.confidence * 100)}%`
-            ctx.fillStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-            ctx.fillRect(boxX, boxY - 25, ctx.measureText(label).width + 10, 25)
-            ctx.fillStyle = "#FFFFFF"
-            ctx.font = "16px Arial"
-            ctx.fillText(label, boxX + 5, boxY - 7)
-          }
-        })
+  // No detections to draw
 
         // Add model label
         ctx.fillStyle = modelColors[model as keyof typeof modelColors]
@@ -184,29 +142,7 @@ export function ComparisonView({ mediaSource, mediaType }: ComparisonViewProps) 
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
 
       // Draw detections for this model
-      const filteredDetections = getFilteredDetections(model)
-      filteredDetections.forEach((detection) => {
-        const [x, y, width, height] = detection.bbox
-        const boxX = x * canvas.width
-        const boxY = y * canvas.height
-        const boxWidth = width * canvas.width
-        const boxHeight = height * canvas.height
-
-        // Draw bounding box
-        ctx.strokeStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-        ctx.lineWidth = 3
-        ctx.strokeRect(boxX, boxY, boxWidth, boxHeight)
-
-        // Draw label if enabled
-        if (showLabels) {
-          const label = `${detection.class} ${Math.round(detection.confidence * 100)}%`
-          ctx.fillStyle = classColors[detection.class as keyof typeof classColors] || "#10B981"
-          ctx.fillRect(boxX, boxY - 25, ctx.measureText(label).width + 10, 25)
-          ctx.fillStyle = "#FFFFFF"
-          ctx.font = "16px Arial"
-          ctx.fillText(label, boxX + 5, boxY - 7)
-        }
-      })
+  // No detections to draw
 
       // Add model label
       ctx.fillStyle = modelColors[model as keyof typeof modelColors]

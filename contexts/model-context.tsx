@@ -22,20 +22,20 @@ export const availableModels: Record<string, ModelInfo> = {
   yolov8: {
     id: "yolov8",
     name: "YOLOv8",
-    path: "/models/yolo.onnx",
-    size: 12.3,
+    path: "https://hxd9pxqilkdfvvvz.public.blob.vercel-storage.com/yolo.onnx",
+    size: 28,
   },
   yolov8_transformer: {
     id: "yolov8_transformer",
     name: "YOLOv8 head + Transformer",
-    path: "/models/hybrid.onnx",
-    size: 42.5,
+    path: "https://hxd9pxqilkdfvvvz.public.blob.vercel-storage.com/hybrid.onnx",
+    size: 42,
   },
   rt_detr: {
     id: "rt_detr",
     name: "RT-DETR",
-    path: "/models/rt_detr.onnx",
-    size: 56.8,
+    path: "https://hxd9pxqilkdfvvvz.public.blob.vercel-storage.com/rt_detr.onnx",
+    size: 56,
   },
 }
 
@@ -74,11 +74,13 @@ const createInitialModelState = (provider: ExecutionProvider): ModelState => ({
   executionProvider: provider,
 })
 
-const createInitialModelStates = (provider: ExecutionProvider): Record<string, ModelState> => ({
-  yolov8: createInitialModelState(provider),
-  yolov8_transformer: createInitialModelState(provider),
-  rt_detr: createInitialModelState(provider),
-})
+const createInitialModelStates = (provider: ExecutionProvider): Record<string, ModelState> => {
+  const states: Record<string, ModelState> = {}
+  Object.keys(availableModels).forEach(modelId => {
+    states[modelId] = createInitialModelState(provider)
+  })
+  return states
+}
 
 const disposeSession = (session?: ort.InferenceSession) => {
   if (!session) return
@@ -91,6 +93,7 @@ const disposeSession = (session?: ort.InferenceSession) => {
 }
 
 const detectAvailableExecutionProviders = (): ExecutionProvider[] => {
+  // Always return wasm for SSR and fallback
   if (typeof window === "undefined") {
     return ["wasm"]
   }
@@ -98,6 +101,7 @@ const detectAvailableExecutionProviders = (): ExecutionProvider[] => {
   const providers: ExecutionProvider[] = ["wasm"]
 
   try {
+    // Check if WebGL is available
     const canvas = document.createElement("canvas")
     const webglContext =
       (canvas.getContext("webgl") as WebGLRenderingContext | null) ||
@@ -124,6 +128,9 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize ONNX runtime
   useEffect(() => {
+    // Only initialize on client-side
+    if (typeof window === 'undefined') return
+    
     // Set ONNX runtime configurations for optimal performance
     ort.env.wasm.numThreads = navigator.hardwareConcurrency || 4
     ort.env.wasm.simd = true
@@ -174,12 +181,19 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
           throw new Error(`Model ${modelId} not found`)
         }
 
+        // Ensure model state exists
+        const currentState = modelStates[modelId]
+        if (!currentState) {
+          console.error(`Model state for ${modelId} not initialized`)
+          return
+        }
+
         // Skip if already loaded or loading
         if (
-            modelStates[modelId]?.status === "loaded" ||
-            modelStates[modelId]?.status === "loading" ||
-            modelStates[modelId]?.status === "running" ||
-            modelStates[modelId]?.status === "complete"
+            currentState.status === "loaded" ||
+            currentState.status === "loading" ||
+            currentState.status === "running" ||
+            currentState.status === "complete"
         ) {
           return
         }
@@ -217,9 +231,15 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
             }))
           }
 
-          // Real model loading
+          // Real model loading with better error handling for GitHub URLs
           const session = await ort.InferenceSession.create(modelInfo.path, sessionOptions, {
             progressCallback: progressHandler,
+          }).catch((error) => {
+            // Handle specific network/download errors for GitHub URLs
+            if (error.message?.includes('fetch') || error.message?.includes('network')) {
+              throw new Error(`Failed to download model from GitHub: ${error.message}`)
+            }
+            throw error
           })
 
           console.log(`Model ${modelId} loaded successfully`)
@@ -268,7 +288,11 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
       async (modelId: string, imageSource: string | HTMLImageElement): Promise<void> => {
         const modelState = modelStates[modelId]
 
-        if (!modelState || (modelState.status !== "loaded" && modelState.status !== "complete")) {
+        if (!modelState) {
+          throw new Error(`Model state for ${modelId} not found`)
+        }
+
+        if (modelState.status !== "loaded" && modelState.status !== "complete") {
           throw new Error(`Model ${modelId} is not ready for inference`)
         }
 

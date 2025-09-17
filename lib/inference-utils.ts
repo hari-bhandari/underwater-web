@@ -3,7 +3,7 @@ import * as ort from "onnxruntime-web"
 import type { Detection } from "@/types/detection"
 
 // Class names for marine species
-export const classNames = ["fish", "small_fish", "crab", "jellyfish", "shrimp", "starfish"]
+export const classNames = ['crab', 'fish', 'jellyfish', 'shrimp', 'small_fish', 'starfish']
 
 // Class colors for visualization - using bright, high-contrast colors for underwater visibility
 export const classColors = {

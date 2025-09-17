@@ -21,12 +21,27 @@ export function ModelSelector({ onModelsSelected, initialSelection }: ModelSelec
   // Get model states from context
   const { modelStates, loadModel } = useModel()
 
+  // Ensure all model states are properly initialized
+  useEffect(() => {
+    const missingModelStates = Object.keys(availableModels).filter(
+      modelId => !modelStates[modelId]
+    )
+    
+    if (missingModelStates.length > 0) {
+      console.warn('Some model states are missing:', missingModelStates)
+    }
+  }, [modelStates])
+
   // Start loading models when they're selected
   useEffect(() => {
+    // Only run on client-side to avoid SSR issues
+    if (typeof window === 'undefined') return
+    
     // Only load models that are selected and not already loading/loaded
     selectedModels.forEach((modelId) => {
       const currentState = modelStates[modelId]
-      if (currentState.status === "idle") {
+      // Add null check to prevent errors on Vercel
+      if (currentState && currentState.status === "idle") {
         console.log(`Starting to load model ${modelId}`)
         loadModel(modelId).catch((error) => {
           console.error(`Failed to load model ${modelId}:`, error)
@@ -77,6 +92,8 @@ export function ModelSelector({ onModelsSelected, initialSelection }: ModelSelec
   // Get loading status text
   const getLoadingStatusText = (modelId: string) => {
     const state = modelStates[modelId]
+    if (!state) return "Click to load model"
+    
     switch (state.status) {
       case "loading":
         return `Loading... ${Math.round(state.progress)}%`
@@ -117,10 +134,10 @@ export function ModelSelector({ onModelsSelected, initialSelection }: ModelSelec
         {modelData.map((model) => {
           const isSelected = selectedModels.includes(model.id)
           const modelState = modelStates[model.id]
-          const isLoading = modelState.status === "loading"
-          const isLoaded = modelState.status === "loaded" || modelState.status === "complete"
-          const isRunning = modelState.status === "running"
-          const hasError = modelState.status === "error"
+          const isLoading = modelState?.status === "loading"
+          const isLoaded = modelState?.status === "loaded" || modelState?.status === "complete"
+          const isRunning = modelState?.status === "running"
+          const hasError = modelState?.status === "error"
 
           return (
             <div
@@ -166,7 +183,7 @@ export function ModelSelector({ onModelsSelected, initialSelection }: ModelSelec
                     <span className="text-xs text-muted-foreground">{getModelSizeText(model.id)}</span>
                   </div>
 
-                  {(isLoading || isRunning) && <Progress value={modelState.progress} className="h-2" />}
+                  {(isLoading || isRunning) && <Progress value={modelState?.progress || 0} className="h-2" />}
 
                   {isLoaded && !isRunning && (
                     <div className="flex items-center text-green-500 text-sm">
@@ -175,7 +192,7 @@ export function ModelSelector({ onModelsSelected, initialSelection }: ModelSelec
                     </div>
                   )}
 
-                  {hasError && <div className="text-destructive text-sm">{modelState.error}</div>}
+                  {hasError && <div className="text-destructive text-sm">{modelState?.error}</div>}
                 </div>
               )}
             </div>

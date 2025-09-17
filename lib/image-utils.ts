@@ -2,7 +2,7 @@ import * as ort from "onnxruntime-web"
 import type { Detection } from "@/types/detection"
 
 // Class names for COCO dataset (or your custom classes)
-export const classNames = ["fish", "small_fish", "crab", "jellyfish", "shrimp", "starfish"]
+export const classNames = ['crab', 'fish', 'jellyfish', 'shrimp', 'small_fish', 'starfish']
 
 // Preprocess image for model input
 export async function preprocessImage(imageData: ImageData | HTMLImageElement): Promise<ort.Tensor> {
@@ -103,6 +103,7 @@ export function tensorToDetections(results: ort.InferenceSession.ReturnType): De
 
     // Only keep detections with confidence above 0.1 (we'll filter further with the slider)
     if (maxClassScore > 0.1) {
+      console.log(`Class: ${classNames[maxClassIndex]}, Confidence: ${maxClassScore.toFixed(2)} id ${i}`)
       detections.push({
         id: i,
         bbox: [x, y, width, height],
